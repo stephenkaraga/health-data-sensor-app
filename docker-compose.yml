@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  redis: 
+    image: redis/redis-stack
+    container_name: client
+    ports:
+      - "6379:6379"
+  myapp:
+    build: .
+    image: myapp
+    ports:
+      - "8081:8081"
+    expose: 
+      - 8081
+    depends_on:
+      - redis
+  myapp-tests:
+    build: .
+    image: myapp
+    command: dockerize -wait tcp://redis:6379 -wait tcp://myapp:8081 -timeout 30s /bin/sh "test.sh"
+    environment:
+      APP_URL: http://myapp:8081
+    expose:
+      - 8002
+    depends_on:
+      - redis
+      - myapp
